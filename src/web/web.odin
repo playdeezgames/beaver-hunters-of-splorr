@@ -43,7 +43,7 @@ state: game.Game
 main :: proc() {
 	ctx = context
 	rand.reset(u64(time.now()._nsec))
-	state = game.new_game()
+	state = game.new_game(u64(time.now()._nsec))
 }
 
 @(export)

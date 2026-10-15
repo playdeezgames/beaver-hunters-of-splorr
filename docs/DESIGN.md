@@ -87,7 +87,7 @@ beyond scars; per-beaver trip-text variation; Steam/Jest anything.
    string and a Urizen tile on a local server. Decide: build on the Murder Hobo core or lift only
    its framebuffer pieces.
 2. **M1 Rules core (done Oct 15, 2026)**: `src/game` with trips, hands, economy, offline catch-up, tests (9). No graphics. Tuning numbers are in `src/game/data.odin`. Patience, beatings and the world are M2; `Trip_Event` is the hook M2 uses.
-3. **M2 World**: generator, beavers, patience, beating, reset, scars, tests.
+3. **M2 World (done Oct 15, 2026)**: generator, beavers, patience, beating, reset, scars, tests (20 in total). See section 8.
 4. **M3 Screens**: title, main, credits, trip text, save/load.
 5. **M4 Ship**: description, cover, screenshots, `--push` after the user says so.
 
@@ -104,3 +104,16 @@ beyond scars; per-beaver trip-text variation; Steam/Jest anything.
 - Hand kind names and the trip-text lines (the user's jokes).
 - Itch page slug and content tags (the user creates the page).
 - Tuning numbers (trip length, base prices, patience per trip, reset reduction): settle with a prototype.
+
+## 8. How M2 resolved the details (PROPOSED, all tunable in `src/game/data.odin`)
+
+- **Ticks.** The simulation runs in 250 ms ticks on an absolute clock, so one big `step` equals many small ones, beatings included. A test proves it.
+- **Where drain goes.** Every trip (hunter or hand) adds its drain to **one beaver of the current area, round-robin**, so there is no randomness at play time. Hands work in the current area; moving on leaves the old one to cool.
+- **Patience** is the sum of the area's beaver grudges; the **limit** is 30 per beaver. Checked once per tick.
+- **Beating.** Force is the area's total patience. Hands absorb it, **Strong before Quiet** (20 per Quiet hand, 60 per Strong), at least one hand per beating. If hands run out the run resets.
+- **After a beating** every beaver's grudge in that area halves. A **full reset** also clears pelts, hands and the trip, and takes 10 grudge off every beaver everywhere. The world is kept.
+- **Scars** are only earned on a full reset, by the beaver with the biggest grudge (lowest index on a tie). Scarred *Forgiving* beavers add no patience; scarred *Grudging* ones add double; *Indifferent* ones are unchanged.
+- **Cooling.** Beavers of areas yer are not in lose 1 grudge every 10 s.
+- **World.** Seeded and deterministic per (seed, index); 3 to 5 beavers per area with distinct names; at most 32 areas, after which "move on" cycles through them (the slice's answer to "what bounds the world").
+- **Placeholder lists.** 30 beaver names and 12 area names in `data.odin` are placeholders; the user writes the real ones.
+- **Known feel risk.** One hand left alone for an hour will be beaten and reset, because drain outpaces cooling in the current area. That is the pressure working, but tune it once there is a screen.

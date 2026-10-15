@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## State of the repo
 
-Milestones **M0 (scaffold) and M1 (rules core: trips, hands, economy, catch-up) are done**; see `docs/DESIGN.md` section 5 for the rest. The game is a stub that proves the pipeline. Do not invent answers to the design's open questions; ask the user.
+Milestones **M0 (scaffold), M1 (rules core) and M2 (world: patience, beatings, resets, scars) are done**; see `docs/DESIGN.md` section 5 for the rest. The game is a stub that proves the pipeline. Do not invent answers to the design's open questions; ask the user.
 
 ## Commands
 
@@ -19,7 +19,7 @@ Single test: `/home/yermom/ODIN/odin test src/game -collection:tggd=src -define:
 
 ## Architecture
 
-- `src/game` (package `game`): pure rules, no platform imports, tested natively. Time comes in as `dt_ms`; `step` is exact for any `dt_ms` (big step equals many small ones), which is what makes offline `catch_up` cheap. All tuning numbers are in `data.odin`.
+- `src/game` (package `game`): pure rules, no platform imports, tested natively. Time comes in as `dt_ms`; `step` is exact for any `dt_ms` (big step equals many small ones), which is what makes offline `catch_up` cheap (the sim runs in fixed 250 ms ticks). `world.odin` holds areas, beavers and the seeded generator; a beating is resolved in `beat_up` in `game.odin`. All tuning numbers are in `data.odin`.
 - `src/web` (package `main`, `#+build js`): frame loop, input, drawing. Imports `fill_rect`, `blit` (tinted) and `blit_raw` (own colours) from `web/index.html`.
 - `web/index.html`: canvas shim. Loads sheets in the order of `Sheet` in `src/web/web.odin`; knocks black out of the Urizen sheet at load; tints the font at draw time. 640x360 canvas, everything drawn at 2x.
 - `assets/`: `urizen.png` (12 px tiles, 1 px gap), `font.png` (DINOBYTE 6x8, 16x16 CP437), with licence records.

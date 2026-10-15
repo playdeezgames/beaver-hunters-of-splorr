@@ -3,6 +3,23 @@ package game
 
 import "core:testing"
 
+// A quiet area for tests that are about something else: every beaver is far from fed up.
+@(private = "file")
+calm :: proc(g: ^Game) {
+	for i in 0 ..< g.area_count {
+		for b in 0 ..< g.areas[i].beaver_count {
+			g.areas[i].beavers[b].grudge = 0
+		}
+	}
+}
+
+@(private = "file")
+cur :: proc(g: ^Game) -> ^Area {
+	return &g.areas[g.current_area]
+}
+
+// --- M1: trips, hands, economy ---
+
 @(test)
 step_accumulates_time :: proc(t: ^testing.T) {
 	g := new_game()
@@ -73,7 +90,8 @@ hands_work_on_their_own_and_stack :: proc(t: ^testing.T) {
 
 @(test)
 one_big_step_equals_many_small_ones :: proc(t: ^testing.T) {
-	big, small := new_game(), new_game()
+	// Long enough to include beatings and a reset, so the whole machine is compared.
+	big, small := new_game(7), new_game(7)
 	for g in ([]^Game{&big, &small}) {
 		g.hands[.Quiet] = 4
 		g.hands[.Strong] = 2
@@ -85,17 +103,29 @@ one_big_step_equals_many_small_ones :: proc(t: ^testing.T) {
 	}
 	step(&small, total % 7)
 	testing.expect_value(t, big.pelts, small.pelts)
-	testing.expect_value(t, big.hand_ms, small.hand_ms)
+	testing.expect_value(t, big.hands, small.hands)
+	testing.expect_value(t, big.beatings, small.beatings)
+	testing.expect_value(t, big.resets, small.resets)
+	testing.expect(t, big.beatings > 0, "the comparison covered a beating")
+	for i in 0 ..< big.area_count {
+		testing.expect(t, big.areas[i] == small.areas[i], "areas match")
+	}
 }
 
 @(test)
 catch_up_is_capped :: proc(t: ^testing.T) {
 	g := new_game()
-	g.hands[.Quiet] = 1
 	counted := catch_up(&g, 24 * 60 * 60 * 1000)
 	testing.expect_value(t, counted, OFFLINE_CAP_MS)
 	testing.expect_value(t, g.elapsed_ms, OFFLINE_CAP_MS)
-	testing.expect_value(t, g.pelts, (OFFLINE_CAP_MS / HAND_DEFS[.Quiet].trip_ms) * HAND_DEFS[.Quiet].haul)
+}
+
+@(test)
+catch_up_pays_hands_when_no_one_is_upset :: proc(t: ^testing.T) {
+	g := new_game()
+	g.hands[.Quiet] = 1
+	catch_up(&g, 60 * 1000) // 7 full 8 s cycles, far under the patience limit
+	testing.expect_value(t, g.pelts, 7)
 }
 
 @(test)
@@ -107,4 +137,141 @@ buying_mid_cycle_keeps_progress :: proc(t: ^testing.T) {
 	buy_hand(&g, .Quiet)
 	step(&g, 2_000) // finishes the 8 s cycle for both hands
 	testing.expect_value(t, g.last_hands[.Quiet].trips, 2)
+}
+
+// --- M2: world, patience, beating, reset, scars ---
+
+@(test)
+generator_is_deterministic_and_well_formed :: proc(t: ^testing.T) {
+	for seed in ([]u64{1, 2, 99, 0xDEADBEEF}) {
+		for index in 0 ..< 10 {
+			a, b := generate_area(seed, index), generate_area(seed, index)
+			testing.expect(t, a == b, "same seed and index, same area")
+			testing.expectf(t, a.beaver_count >= MIN_BEAVERS && a.beaver_count <= MAX_BEAVERS, "count %d", a.beaver_count)
+			for i in 0 ..< a.beaver_count {
+				for j in i + 1 ..< a.beaver_count {
+					testing.expect(t, a.beavers[i].name != a.beavers[j].name, "distinct names")
+				}
+			}
+		}
+	}
+	testing.expect(t, generate_area(1, 0) != generate_area(2, 0) || generate_area(1, 1) != generate_area(2, 1), "seeds differ")
+}
+
+@(test)
+hunter_trip_adds_patience :: proc(t: ^testing.T) {
+	g := new_game()
+	start_hunt(&g)
+	step(&g, HUNTER_TRIP_MS)
+	testing.expect_value(t, area_patience(cur(&g)), HUNTER_DRAIN)
+}
+
+@(test)
+drain_is_spread_round_robin :: proc(t: ^testing.T) {
+	g := new_game()
+	n := cur(&g).beaver_count
+	g.hands[.Quiet] = u64(n) // n trips per cycle: one each
+	step(&g, HAND_DEFS[.Quiet].trip_ms)
+	for i in 0 ..< n {
+		testing.expect_value(t, cur(&g).beavers[i].grudge, HAND_DEFS[.Quiet].drain)
+	}
+}
+
+@(test)
+scars_change_how_beavers_take_trips :: proc(t: ^testing.T) {
+	forgiving := Beaver{temperament = .Forgiving, scars = 1}
+	grudging := Beaver{temperament = .Grudging, scars = 1}
+	indifferent := Beaver{temperament = .Indifferent, scars = 1}
+	fresh := Beaver{temperament = .Grudging}
+	testing.expect_value(t, trip_drain(&forgiving, 4), 0)
+	testing.expect_value(t, trip_drain(&grudging, 4), 4 * SCARRED_GRUDGING_FACTOR)
+	testing.expect_value(t, trip_drain(&indifferent, 4), 4)
+	testing.expect_value(t, trip_drain(&fresh, 4), 4)
+}
+
+@(test)
+beating_takes_best_hands_first_and_spares_the_run :: proc(t: ^testing.T) {
+	g := new_game()
+	g.hands[.Strong] = 2
+	g.hands[.Quiet] = 5
+	g.pelts = 77
+	area := cur(&g)
+	area.beavers[0].grudge = area_limit(area) // at the limit, so the next tick beats
+	step(&g, TICK_MS)
+	// Force was the limit; a Strong hand absorbs 60, so the first lost hand is a Strong one.
+	testing.expect_value(t, g.last_beating.beatings, 1)
+	testing.expect(t, g.last_beating.hands_lost[.Strong] >= 1, "strong hand lost first")
+	testing.expect(t, g.hands[.Strong] < 2, "a strong hand is gone")
+	testing.expect_value(t, g.resets, 0)
+	testing.expect_value(t, g.pelts, 77 + 0)
+}
+
+@(test)
+no_hands_means_a_full_reset_with_a_scar :: proc(t: ^testing.T) {
+	g := new_game()
+	move_on(&g) // area 1 so the world has two places to keep
+	g.pelts = 500
+	g.hunter_out = true
+	area := cur(&g)
+	area.beavers[1].grudge = area_limit(area) // beaver 1 is the ringleader
+	other := &g.areas[0]
+	other.beavers[0].grudge = 25
+	step(&g, TICK_MS)
+
+	testing.expect_value(t, g.last_beating.resets, 1)
+	testing.expect_value(t, g.pelts, 0)
+	testing.expect(t, !g.hunter_out, "trip abandoned")
+	testing.expect_value(t, area.beavers[1].scars, 1)
+	testing.expect_value(t, g.last_beating.scar_beaver, 1)
+	testing.expect_value(t, g.area_count, 2) // the world is kept
+	testing.expect_value(t, other.beavers[0].grudge, 25 - RESET_RELIEF) // calmer, not cleared
+	testing.expect(t, area_patience(area) < area_limit(area), "area is usable again")
+}
+
+@(test)
+moving_on_lets_an_area_cool_and_it_is_remembered :: proc(t: ^testing.T) {
+	g := new_game()
+	before := g.areas[0]
+	cur(&g).beavers[0].grudge = 5
+	move_on(&g)
+	testing.expect_value(t, g.current_area, 1)
+	step(&g, COOL_INTERVAL_MS * 2)
+	testing.expect_value(t, g.areas[0].beavers[0].grudge, 3)
+	testing.expect(t, go_to_area(&g, 0), "can go back")
+	testing.expect_value(t, g.areas[0].beaver_count, before.beaver_count)
+	testing.expect(t, g.areas[0].beavers[0].name == before.beavers[0].name, "same beavers")
+	testing.expect(t, !go_to_area(&g, 5), "no such area")
+}
+
+@(test)
+the_current_area_does_not_cool :: proc(t: ^testing.T) {
+	g := new_game()
+	cur(&g).beavers[0].grudge = 5
+	step(&g, COOL_INTERVAL_MS * 2)
+	testing.expect_value(t, cur(&g).beavers[0].grudge, 5)
+}
+
+@(test)
+a_full_world_cycles_through_remembered_areas :: proc(t: ^testing.T) {
+	g := new_game()
+	for _ in 0 ..< MAX_AREAS + 3 {
+		move_on(&g)
+	}
+	testing.expect_value(t, g.area_count, MAX_AREAS)
+	testing.expect(t, g.current_area >= 0 && g.current_area < MAX_AREAS, "stays in range")
+}
+
+@(test)
+a_scarred_forgiving_beaver_stops_adding_patience_next_run :: proc(t: ^testing.T) {
+	g := new_game()
+	area := cur(&g)
+	area.beavers[0].temperament = .Forgiving
+	area.beavers[0].grudge = area_limit(area)
+	step(&g, TICK_MS) // no hands: reset, beaver 0 is scarred
+	testing.expect_value(t, area.beavers[0].scars, 1)
+	calm(&g)
+	area.trips = 0 // the next trip goes to beaver 0
+	start_hunt(&g)
+	step(&g, HUNTER_TRIP_MS)
+	testing.expect_value(t, area_patience(area), 0)
 }
