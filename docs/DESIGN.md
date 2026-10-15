@@ -86,7 +86,7 @@ beyond scars; per-beaver trip-text variation; Steam/Jest anything.
 1. **M0 Scaffold (done Oct 15, 2026)**: repo layout, `build.sh`/`test.sh`, canvas shim, blank frame with a DINOBYTE
    string and a Urizen tile on a local server. Decide: build on the Murder Hobo core or lift only
    its framebuffer pieces.
-2. **M1 Rules core**: `src/game` with trips, hands, economy, tests. No graphics.
+2. **M1 Rules core (done Oct 15, 2026)**: `src/game` with trips, hands, economy, offline catch-up, tests (9). No graphics. Tuning numbers are in `src/game/data.odin`. Patience, beatings and the world are M2; `Trip_Event` is the hook M2 uses.
 3. **M2 World**: generator, beavers, patience, beating, reset, scars, tests.
 4. **M3 Screens**: title, main, credits, trip text, save/load.
 5. **M4 Ship**: description, cover, screenshots, `--push` after the user says so.
