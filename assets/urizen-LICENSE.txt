@@ -1,0 +1,4 @@
+Urizen 1-bit tileset v2.0 by vurmux
+Page: https://vurmux.itch.io/urizen-onebit-tileset
+Licence: CC0 1.0 (public domain dedication). Credit appreciated by the author.
+12 px tiles with a 1 px gap: tile (col, row) starts at (13*col + 1, 13*row + 1).
