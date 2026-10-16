@@ -224,12 +224,17 @@ draw_play :: proc() {
 	px: i32 = PANEL_X
 	bar_x := px + 168
 	draw_text(fmt.bprintf(buf[:], "Pelts %d", g.pelts), px, 12)
-	draw_text("Hunter", px, 40, DIM)
+	buf4: [32]u8
+	draw_text(fmt.bprintf(buf4[:], "Hunter +%d", game.hunter_haul(g.hunter_level)), px, 40, DIM)
 	draw_bar(bar_x, 42, 96, g.hunter_ms if g.hunter_out else 0, game.HUNTER_TRIP_MS, ACCENT)
 	hunt_label := "[H] Hunting..." if g.hunter_out else "[H] Hunt"
-	draw_button(hunt_label, px, 68, 264, .Hunt, !g.hunter_out)
+	draw_button(hunt_label, px, 64, 264, .Hunt, !g.hunter_out)
 
-	y: i32 = 108
+	train_cost := game.hunter_upgrade_cost(g.hunter_level)
+	buf5: [32]u8
+	draw_button(fmt.bprintf(buf5[:], "[T] Train  %d", train_cost), px, 92, 264, .Train, g.pelts >= train_cost)
+
+	y: i32 = 126
 	for kind in game.Hand_Kind {
 		def := game.HAND_DEFS[kind]
 		count := g.hands[kind]
@@ -237,19 +242,19 @@ draw_play :: proc() {
 		buf2: [64]u8
 		draw_text(fmt.bprintf(buf2[:], "%s x%d", def.name, count), px, y, DIM)
 		draw_bar(bar_x, y + 2, 96, g.hand_ms[kind] if count > 0 else 0, def.trip_ms, ACCENT)
-		key := "Q" if kind == .Quiet else "S"
+		key := "S" if kind == .Quiet else "R"
 		action := Action.Hire_Quiet if kind == .Quiet else Action.Hire_Strong
 		buf3: [64]u8
-		draw_button(fmt.bprintf(buf3[:], "[%s] Hire  %d", key, cost), px, y + 24, 264, action, g.pelts >= cost)
-		y += 64
+		draw_button(fmt.bprintf(buf3[:], "[%s] Hire  %d", key, cost), px, y + 20, 264, action, g.pelts >= cost)
+		y += 52
 	}
-	draw_button("[M] Move on", px, y + 4, 264, .Move_On, true)
-	draw_button("[<]", px, y + 36, 126, .Prev_Area, g.current_area > 0)
-	draw_button("[>]", px + 138, y + 36, 126, .Next_Area, g.current_area + 1 < g.area_count)
-	draw_button("[Esc] Title", px, y + 68, 264, .Title, true)
+	draw_button("[M] Move on", px, y, 264, .Move_On, true)
+	draw_button("[<]", px, y + 30, 126, .Prev_Area, g.current_area > 0)
+	draw_button("[>]", px + 138, y + 30, 126, .Next_Area, g.current_area + 1 < g.area_count)
+	draw_button("[Esc] Title", px, y + 60, 264, .Title, true)
 
-	// Message line.
-	draw_wrapped(message, SCENE_X, 316, 52)
+	// Message lines: below both columns, clear of the panel (which ends at about y 314).
+	draw_wrapped(message, SCENE_X, 322, 52)
 }
 
 // Breaks `s` at spaces into at most two lines of `width` characters.

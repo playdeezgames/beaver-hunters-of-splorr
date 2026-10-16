@@ -23,7 +23,7 @@ There is no ending. There is a pile of pelts, and the question of how long it st
 
 **CONTROLS**
 
-- **H** or **Space**: hunt. **Q** and **S**: hire a hand. **M**: move on. **Left** and **Right**: visit a remembered area. **Esc**: title.
+- **H** or **Space**: hunt. **T**: train the hunter to bring back more. **S**: hire a Soft Touch. **R**: hire a Rough Hand. **M**: move on. **Left** and **Right**: visit a remembered area. **Esc**: title.
 - Everything is also clickable and tappable.
 
 **CREDITS**

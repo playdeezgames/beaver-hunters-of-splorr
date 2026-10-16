@@ -408,3 +408,51 @@ losing_a_hand_does_not_discount_the_next :: proc(t: ^testing.T) {
 	testing.expect_value(t, g.bought[.Quiet], 0)
 	testing.expect_value(t, hand_cost(.Quiet, g.bought[.Quiet]), 10)
 }
+
+// --- Hunter upgrades ---
+
+@(test)
+hunter_upgrades_raise_the_haul_and_cost_more :: proc(t: ^testing.T) {
+	testing.expect_value(t, hunter_haul(0), HUNTER_HAUL)
+	testing.expect_value(t, hunter_haul(3), HUNTER_HAUL + 3 * HUNTER_HAUL_PER_LEVEL)
+	testing.expect_value(t, hunter_upgrade_cost(0), HUNTER_UPGRADE_BASE_COST)
+	prev := hunter_upgrade_cost(0)
+	for n in 1 ..< 30 {
+		c := hunter_upgrade_cost(u64(n))
+		testing.expectf(t, c > prev, "cost rises at %d", n)
+		prev = c
+	}
+}
+
+@(test)
+hunter_drain_rises_every_second_level :: proc(t: ^testing.T) {
+	testing.expect_value(t, hunter_drain(0), HUNTER_DRAIN)
+	testing.expect_value(t, hunter_drain(1), HUNTER_DRAIN)
+	testing.expect_value(t, hunter_drain(2), HUNTER_DRAIN + 1)
+	testing.expect_value(t, hunter_drain(5), HUNTER_DRAIN + 2)
+}
+
+@(test)
+buying_a_hunter_upgrade_needs_pelts_and_pays_off :: proc(t: ^testing.T) {
+	g := new_game()
+	g.pelts = HUNTER_UPGRADE_BASE_COST - 1
+	testing.expect(t, !buy_hunter_upgrade(&g), "cannot afford")
+	testing.expect_value(t, g.hunter_level, 0)
+	g.pelts = HUNTER_UPGRADE_BASE_COST
+	testing.expect(t, buy_hunter_upgrade(&g), "affords")
+	testing.expect_value(t, g.pelts, 0)
+	testing.expect_value(t, g.hunter_level, 1)
+	start_hunt(&g)
+	step(&g, HUNTER_TRIP_MS)
+	testing.expect_value(t, g.pelts, hunter_haul(1))
+}
+
+@(test)
+a_full_reset_clears_the_hunter_level :: proc(t: ^testing.T) {
+	g := new_game()
+	g.hunter_level = 4
+	area := cur(&g)
+	area.beavers[0].grudge = area_limit(area, g.current_area)
+	step(&g, TICK_MS)
+	testing.expect_value(t, g.hunter_level, 0)
+}

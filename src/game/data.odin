@@ -11,6 +11,13 @@ HUNTER_TRIP_MS :: 5_000
 HUNTER_HAUL :: 1
 HUNTER_DRAIN :: 2 // patience one hunter trip adds to the area
 
+// Upgrading the hunter: each level adds pelts per trip, and every second level one more patience
+// per trip, so a stronger hunter angers the beavers too. Levels reset with a full reset.
+HUNTER_UPGRADE_BASE_COST :: 25
+HUNTER_UPGRADE_GROWTH :: 1.6
+HUNTER_HAUL_PER_LEVEL :: 1
+HUNTER_LEVELS_PER_EXTRA_DRAIN :: 2
+
 Hand_Kind :: enum {
 	Quiet,
 	Strong,
@@ -66,7 +73,7 @@ AREA_NAMES := [?]string {
 
 // Save format.
 SAVE_MAGIC :: 0x42485350 // "BHSP"
-SAVE_VERSION :: 3
+SAVE_VERSION :: 4
 
 // PLACEHOLDER trip text, played straight, so the screens can be built. The user writes the
 // real lines (the double entendre lives here). Voice: "yer" means "your" or "you're" only; "you" stays "you" (\"You set the traps\", \"Erase yer save?\"). Never write "your" or "you're".

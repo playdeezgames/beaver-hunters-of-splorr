@@ -38,6 +38,10 @@ patience_fraction :: proc(g: ^game.Game) -> f64 {
 shop :: proc(g: ^game.Game) -> bool {
 	best: game.Hand_Kind
 	best_value := max(f64)
+	// The hunter upgrade competes on the same measure: cost per extra pelt per second of hunting
+	// (a hunter trip takes HUNTER_TRIP_MS plus a re-press, so count it as always hunting).
+	upgrade_income := f64(game.HUNTER_HAUL_PER_LEVEL) / (f64(game.HUNTER_TRIP_MS) / 1000)
+	upgrade_value := f64(game.hunter_upgrade_cost(g.hunter_level)) / upgrade_income
 	for kind in game.Hand_Kind {
 		def := game.HAND_DEFS[kind]
 		income := f64(def.haul) / (f64(def.trip_ms) / 1000)
@@ -45,6 +49,9 @@ shop :: proc(g: ^game.Game) -> bool {
 		if value < best_value {
 			best_value, best = value, kind
 		}
+	}
+	if upgrade_value < best_value {
+		return game.buy_hunter_upgrade(g)
 	}
 	return game.buy_hand(g, best)
 }

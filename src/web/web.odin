@@ -198,6 +198,7 @@ Action :: enum {
 	Confirm_Erase,
 	Cancel_Erase,
 	Hunt,
+	Train,
 	Hire_Quiet,
 	Hire_Strong,
 	Move_On,
@@ -225,6 +226,10 @@ do_action :: proc(a: Action) {
 		confirm_erase = false
 	case .Hunt:
 		game.start_hunt(&state)
+	case .Train:
+		if game.buy_hunter_upgrade(&state) {
+			save()
+		}
 	case .Hire_Quiet:
 		if game.buy_hand(&state, .Quiet) {
 			save()
@@ -270,8 +275,9 @@ key_action :: proc(code: string) -> Action {
 	case .Play:
 		switch code {
 		case "KeyH", "Space": return .Hunt
-		case "KeyQ": return .Hire_Quiet
-		case "KeyS": return .Hire_Strong
+		case "KeyT": return .Train
+		case "KeyS": return .Hire_Quiet
+		case "KeyR": return .Hire_Strong
 		case "KeyM": return .Move_On
 		case "ArrowLeft": return .Prev_Area
 		case "ArrowRight": return .Next_Area

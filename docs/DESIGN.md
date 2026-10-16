@@ -120,7 +120,7 @@ See section 10 for what was settled. Remaining: the user's edits to the trip tex
 
 - **Save.** A small header (magic, version, size, wall-clock time) plus the raw `Game`, base64 in `localStorage` under `bhos:save`. Loading rejects the wrong size, version or shape. Autosave every 5 s while on the play screen, and on buys, moves, beatings and leaving to the title. The title screen can erase it, with a confirmation.
 - **Time.** The page steps by wall-clock deltas. A gap over 2 s (tab hidden, or a reload) is treated as offline time, capped at an hour. A notice appears past a minute.
-- **Input.** Keyboard and pointer/touch, via buttons registered each frame. Keys: Enter/Space, H hunt, Q and S hire, M move on, left/right area, Esc title, C credits.
+- **Input.** Keyboard and pointer/touch, via buttons registered each frame. Keys: Enter/Space, H hunt, S hires Soft Touch, R hires Rough Hand, M move on, left/right area, Esc title, C credits.
 - **Scene.** A seeded scatter of Urizen trees, tufts and water; the hunter, up to four hands and the area's beavers drawn in rows. Tiles chosen are constants at the top of `src/web/screens.odin`. The beaver is a stand-in animal tile.
 - **Text.** Placeholder lines in `data.odin`: plain lines, a beaver name plus a fragment, and fragments for scarred beavers. Beating and reset messages are placeholders in `src/web/web.odin`. The user writes the real ones.
 - **Scars show** as `*` marks beside a beaver's name and as trip lines for scarred beavers. Temperament is not shown.
@@ -142,3 +142,10 @@ See section 10 for what was settled. Remaining: the user's edits to the trip tex
 - **Limit** per beaver raised from 30 to 60.
 - **Hand prices follow hands bought this run**, not hands owned. A beating costs hands without discounting the rebuy; a full reset starts the next run at base prices.
 - Save version 3. Findings and the simulation are in `docs/BALANCE.md`.
+
+## 12. Hunter upgrade (October 16, 2026; PROPOSED numbers in `data.odin`)
+
+- The user asked for a way to make Hunt pay more than one pelt. A **Train** button (key **T**) buys hunter levels: each adds 1 pelt per trip, and every second level adds 1 patience per trip, so a stronger hunter also angers the beavers.
+- Cost is 25 pelts at 1.6x per level. Levels reset with a full reset, like hands and pelts.
+- The label "Train" and the "Hunter +N" readout are placeholders; the user may rename them.
+- Save version 4. The bot simulation includes the upgrade; it raised pelts per hour for rotating and fresh-area bots by about 20% and 35%.

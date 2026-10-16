@@ -29,6 +29,7 @@ Game :: struct {
 	pelts:        u64,
 	hunter_out:   bool,
 	hunter_ms:    u64, // time spent on the current trip
+	hunter_level: u64, // upgrades bought this run
 	hands:        [Hand_Kind]u64, // hands owned
 	bought:       [Hand_Kind]u64, // hands bought this run; the price follows this, so losing a hand does not discount the next
 	hand_ms:      [Hand_Kind]u64, // progress into each kind's current cycle
@@ -79,6 +80,31 @@ start_hunt :: proc(g: ^Game) -> bool {
 	return true
 }
 
+// Pelts the hunter brings back per trip, before the area's depth bonus.
+hunter_haul :: proc(level: u64) -> u64 {
+	return HUNTER_HAUL + level * HUNTER_HAUL_PER_LEVEL
+}
+
+// Patience one hunter trip adds.
+hunter_drain :: proc(level: u64) -> u64 {
+	return HUNTER_DRAIN + level / HUNTER_LEVELS_PER_EXTRA_DRAIN
+}
+
+hunter_upgrade_cost :: proc(level: u64) -> u64 {
+	return u64(math.ceil(f64(HUNTER_UPGRADE_BASE_COST) * math.pow(HUNTER_UPGRADE_GROWTH, f64(level))))
+}
+
+// Buys one hunter level. False (and nothing changes) if yer cannot afford it.
+buy_hunter_upgrade :: proc(g: ^Game) -> bool {
+	cost := hunter_upgrade_cost(g.hunter_level)
+	if g.pelts < cost {
+		return false
+	}
+	g.pelts -= cost
+	g.hunter_level += 1
+	return true
+}
+
 // Price of the next hand of a kind: steep curve, rounded up.
 hand_cost :: proc(kind: Hand_Kind, bought: u64) -> u64 {
 	base := f64(HAND_DEFS[kind].base_cost)
@@ -119,10 +145,10 @@ tick :: proc(g: ^Game) {
 		if g.hunter_ms >= HUNTER_TRIP_MS {
 			g.hunter_out = false
 			g.hunter_ms = 0
-			paid := pay(g, HUNTER_HAUL)
+			paid := pay(g, hunter_haul(g.hunter_level))
 			g.last_hunter.trips += 1
 			g.last_hunter.pelts += paid
-			add_trips(g, HUNTER_DRAIN, 1)
+			add_trips(g, hunter_drain(g.hunter_level), 1)
 		}
 	}
 
@@ -236,6 +262,7 @@ beat_up :: proc(g: ^Game) {
 		g.hand_ms = {}
 		g.hunter_out = false
 		g.hunter_ms = 0
+		g.hunter_level = 0
 		for a in 0 ..< g.area_count {
 			for b in 0 ..< g.areas[a].beaver_count {
 				beaver := &g.areas[a].beavers[b]
