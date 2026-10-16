@@ -275,3 +275,90 @@ a_scarred_forgiving_beaver_stops_adding_patience_next_run :: proc(t: ^testing.T)
 	step(&g, HUNTER_TRIP_MS)
 	testing.expect_value(t, area_patience(area), 0)
 }
+
+// --- M3: save and trip text ---
+
+@(test)
+save_round_trips :: proc(t: ^testing.T) {
+	g := new_game(42)
+	g.hands[.Quiet] = 3
+	g.pelts = 123
+	move_on(&g)
+	step(&g, 12_345)
+	buf: [SAVE_BYTES]u8
+	n := save_to_bytes(&g, 1_700_000_000_000, buf[:])
+	testing.expect_value(t, n, SAVE_BYTES)
+	loaded, at, ok := load_from_bytes(buf[:])
+	testing.expect(t, ok, "loads")
+	testing.expect_value(t, at, 1_700_000_000_000)
+	testing.expect(t, loaded == g, "same game")
+}
+
+@(test)
+save_rejects_bad_data :: proc(t: ^testing.T) {
+	g := new_game()
+	buf: [SAVE_BYTES]u8
+	save_to_bytes(&g, 1, buf[:])
+
+	_, _, ok := load_from_bytes(buf[:SAVE_BYTES - 1])
+	testing.expect(t, !ok, "short")
+
+	bad := buf
+	bad[0] ~= 0xFF // magic
+	_, _, ok = load_from_bytes(bad[:])
+	testing.expect(t, !ok, "magic")
+
+	bad = buf
+	bad[4] += 1 // version
+	_, _, ok = load_from_bytes(bad[:])
+	testing.expect(t, !ok, "version")
+
+	broken := g
+	broken.current_area = 5 // outside area_count
+	save_to_bytes(&broken, 1, bad[:])
+	_, _, ok = load_from_bytes(bad[:])
+	testing.expect(t, !ok, "current area out of range")
+
+	broken = g
+	broken.areas[0].beavers[0].name = 250 // outside the name list
+	save_to_bytes(&broken, 1, bad[:])
+	_, _, ok = load_from_bytes(bad[:])
+	testing.expect(t, !ok, "name out of range")
+
+	_, _, ok = load_from_bytes(nil)
+	testing.expect(t, !ok, "empty")
+}
+
+@(test)
+trip_lines_are_deterministic_and_in_range :: proc(t: ^testing.T) {
+	g := new_game(3)
+	for _ in 0 ..< 200 {
+		area := cur(&g)
+		area.trips += 1
+		a := pick_trip_line(&g)
+		b := pick_trip_line(&g)
+		testing.expect(t, a == b, "same state, same line")
+		testing.expect(t, a.beaver >= 0 && a.beaver < area.beaver_count, "beaver in range")
+		switch a.kind {
+		case .Plain:
+			testing.expect(t, a.index < len(TRIP_LINES), "plain index")
+		case .Named:
+			testing.expect(t, a.index < len(NAMED_FRAGMENTS), "named index")
+		case .Scarred:
+			testing.expect(t, a.index < len(SCARRED_FRAGMENTS), "scarred index")
+		}
+	}
+}
+
+@(test)
+a_scarred_beaver_gets_a_line_that_says_so :: proc(t: ^testing.T) {
+	g := new_game()
+	area := cur(&g)
+	for i in 0 ..< area.beaver_count {
+		area.beavers[i].scars = 1
+	}
+	for _ in 0 ..< 20 {
+		area.trips += 1
+		testing.expect_value(t, pick_trip_line(&g).kind, Line_Kind.Scarred)
+	}
+}

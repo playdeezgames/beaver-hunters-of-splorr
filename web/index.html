@@ -60,8 +60,35 @@
     return c;
   }
 
+  const memory = new odin.WasmMemoryInterface();
+  const decoder = new TextDecoder();
+  const key = (ptr, len) => decoder.decode(new Uint8Array(memory.memory.buffer, ptr, len));
+
   const imports = {
     canvas: {
+      now_ms: () => Date.now(),
+      storage_get: (kp, kl, bp, cap) => {
+        try {
+          const v = localStorage.getItem(key(kp, kl));
+          if (v === null) return -1;
+          const raw = atob(v);
+          if (raw.length > cap) return -1;
+          const out = new Uint8Array(memory.memory.buffer, bp, raw.length);
+          for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+          return raw.length;
+        } catch (e) { return -1; }
+      },
+      storage_set: (kp, kl, vp, vl) => {
+        try {
+          const bytes = new Uint8Array(memory.memory.buffer, vp, vl);
+          let s = "";
+          for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+          localStorage.setItem(key(kp, kl), btoa(s));
+        } catch (e) { /* storage blocked or full: the game still plays */ }
+      },
+      storage_remove: (kp, kl) => {
+        try { localStorage.removeItem(key(kp, kl)); } catch (e) {}
+      },
       fill_rect: (x, y, w, h, rgb) => { g.fillStyle = hex(rgb); g.fillRect(x, y, w, h); },
       blit: (sheet, sx, sy, w, h, dx, dy, dw, dh, rgb) => {
         if (!sheets[sheet]) return;
@@ -74,8 +101,15 @@
     },
   };
 
+  canvas.addEventListener("pointerdown", (e) => {
+    const r = canvas.getBoundingClientRect();
+    const x = Math.floor((e.clientX - r.left) * canvas.width / r.width);
+    const y = Math.floor((e.clientY - r.top) * canvas.height / r.height);
+    if (memory.exports && memory.exports.on_click) memory.exports.on_click(x, y);
+  });
+
   window.addEventListener("load", () => {
-    odin.runWasm("game.wasm", null, imports);
+    odin.runWasm("game.wasm", null, imports, memory);
   });
 })();
 </script>

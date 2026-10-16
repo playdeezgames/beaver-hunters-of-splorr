@@ -88,7 +88,7 @@ beyond scars; per-beaver trip-text variation; Steam/Jest anything.
    its framebuffer pieces.
 2. **M1 Rules core (done Oct 15, 2026)**: `src/game` with trips, hands, economy, offline catch-up, tests (9). No graphics. Tuning numbers are in `src/game/data.odin`. Patience, beatings and the world are M2; `Trip_Event` is the hook M2 uses.
 3. **M2 World (done Oct 15, 2026)**: generator, beavers, patience, beating, reset, scars, tests (20 in total). See section 8.
-4. **M3 Screens**: title, main, credits, trip text, save/load.
+4. **M3 Screens (done Oct 15, 2026)**: title, play, credits, trip text, save/load. See section 9.
 5. **M4 Ship**: description, cover, screenshots, `--push` after the user says so.
 
 ## 6. Decisions on the slice (October 15, 2026)
@@ -117,3 +117,13 @@ beyond scars; per-beaver trip-text variation; Steam/Jest anything.
 - **World.** Seeded and deterministic per (seed, index); 3 to 5 beavers per area with distinct names; at most 32 areas, after which "move on" cycles through them (the slice's answer to "what bounds the world").
 - **Placeholder lists.** 30 beaver names and 12 area names in `data.odin` are placeholders; the user writes the real ones.
 - **Known feel risk.** One hand left alone for an hour will be beaten and reset, because drain outpaces cooling in the current area. That is the pressure working, but tune it once there is a screen.
+
+## 9. How M3 resolved the details
+
+- **Save.** A small header (magic, version, size, wall-clock time) plus the raw `Game`, base64 in `localStorage` under `bhos:save`. Loading rejects the wrong size, version or shape. Autosave every 5 s while on the play screen, and on buys, moves, beatings and leaving to the title. The title screen can erase it, with a confirmation.
+- **Time.** The page steps by wall-clock deltas. A gap over 2 s (tab hidden, or a reload) is treated as offline time, capped at an hour. A notice appears past a minute.
+- **Input.** Keyboard and pointer/touch, via buttons registered each frame. Keys: Enter/Space, H hunt, Q and S hire, M move on, left/right area, Esc title, C credits.
+- **Scene.** A seeded scatter of Urizen trees, tufts and water; the hunter, up to four hands and the area's beavers drawn in rows. Tiles chosen are constants at the top of `src/web/screens.odin`. The beaver is a stand-in animal tile.
+- **Text.** Placeholder lines in `data.odin`: plain lines, a beaver name plus a fragment, and fragments for scarred beavers. Beating and reset messages are placeholders in `src/web/web.odin`. The user writes the real ones.
+- **Scars show** as `*` marks beside a beaver's name and as trip lines for scarred beavers. Temperament is not shown.
+- **Not done.** Sound, touch layout checks on a phone, the itch page assets (M4).

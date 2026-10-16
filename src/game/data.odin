@@ -59,3 +59,37 @@ AREA_NAMES := [?]string {
 	"Mill Creek", "Long Marsh", "Pine Hollow", "Stony Bend", "Cold Pond", "Alder Flats",
 	"Fox Run", "Deep Reach", "Muddy Elbow", "High Meadow", "Thorn Brook", "Quiet Water",
 }
+
+// Save format.
+SAVE_MAGIC :: 0x42485350 // "BHSP"
+SAVE_VERSION :: 1
+
+// PLACEHOLDER trip text, played straight, so the screens can be built. The user writes the
+// real lines (the double entendre lives here). Voice is "yer"; never "your" or "you're".
+// A trip's line is a plain line, or a beaver's name followed by a fragment.
+TRIP_LINES := [?]string {
+	"Yer set the traps along the bank.",
+	"A quiet morning on the water.",
+	"The pelts are good this season.",
+	"Yer check the lines before dark.",
+	"Nothing stirs but the reeds.",
+	"Yer follow the creek upstream.",
+	"A fair haul.",
+	"The lodge stands quiet.",
+	"Yer lay another line.",
+	"Cold work, but honest.",
+}
+
+NAMED_FRAGMENTS := [?]string {
+	"watches from the reeds.",
+	"slaps the water twice.",
+	"keeps count of yer visits.",
+	"does not look up.",
+}
+
+SCARRED_FRAGMENTS := [?]string {
+	"remembers yer.",
+	"wears the mark from last time.",
+	"turns away.",
+	"has a long memory.",
+}
