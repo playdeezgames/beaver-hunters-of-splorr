@@ -135,3 +135,10 @@ See section 10 for what was settled. Remaining: the user's edits to the trip tex
 - **Itch page exists:** https://thegrumpygamedev.itch.io/beaver-hunters-of-splorr (slug `beaver-hunters-of-splorr`, matching `shippit.sh`). Page settings, tags and content notes are the user's.
 - **Page copy:** Claude drafts `ITCH_DESCRIPTION.md` (done, draft); the user edits it, pastes it in, and sets tags and the content note.
 - **Tuning:** a bot-play simulation for sanity first, then the user plays and reports feel; numbers live in `src/game/data.odin`.
+
+## 11. Balance retune (October 16, 2026; PROPOSED numbers in `data.odin`)
+
+- **Depth.** An area's index is its depth. Each step deeper lowers the limit per beaver by 3 (floor 20) and raises pay by 10%. Pay fractions carry over exactly.
+- **Limit** per beaver raised from 30 to 60.
+- **Hand prices follow hands bought this run**, not hands owned. A beating costs hands without discounting the rebuy; a full reset starts the next run at base prices.
+- Save version 3. Findings and the simulation are in `docs/BALANCE.md`.

@@ -15,6 +15,8 @@ Milestones **M0 (scaffold), M1 (rules core) and M2 (world: patience, beatings, r
 ./shippit.sh # test, build, zip; uploads to itch.io only with --push (ask the user first)
 ```
 
+Balance simulation (bot play over many seeds, see `docs/BALANCE.md`): `/home/yermom/ODIN/odin run tools/sim -collection:tggd=src -o:speed`
+
 Single test: `/home/yermom/ODIN/odin test src/game -collection:tggd=src -define:ODIN_TEST_THREADS=1 -define:ODIN_TEST_NAMES=game.step_accumulates_time`
 
 ## Architecture

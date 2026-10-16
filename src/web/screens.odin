@@ -233,7 +233,7 @@ draw_play :: proc() {
 	for kind in game.Hand_Kind {
 		def := game.HAND_DEFS[kind]
 		count := g.hands[kind]
-		cost := game.hand_cost(kind, count)
+		cost := game.hand_cost(kind, g.bought[kind])
 		buf2: [64]u8
 		draw_text(fmt.bprintf(buf2[:], "%s x%d", def.name, count), px, y, DIM)
 		draw_bar(bar_x, y + 2, 96, g.hand_ms[kind] if count > 0 else 0, def.trip_ms, ACCENT)

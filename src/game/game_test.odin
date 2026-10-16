@@ -75,7 +75,7 @@ buying_needs_pelts_and_charges_them :: proc(t: ^testing.T) {
 	testing.expect(t, buy_hand(&g, .Quiet), "affords")
 	testing.expect_value(t, g.pelts, 0)
 	testing.expect_value(t, g.hands[.Quiet], 1)
-	testing.expect_value(t, hand_cost(.Quiet, g.hands[.Quiet]), 12)
+	testing.expect_value(t, hand_cost(.Quiet, g.bought[.Quiet]), 12)
 }
 
 @(test)
@@ -196,7 +196,7 @@ beating_takes_best_hands_first_and_spares_the_run :: proc(t: ^testing.T) {
 	g.hands[.Quiet] = 5
 	g.pelts = 77
 	area := cur(&g)
-	area.beavers[0].grudge = area_limit(area) // at the limit, so the next tick beats
+	area.beavers[0].grudge = area_limit(area, g.current_area) // at the limit, so the next tick beats
 	step(&g, TICK_MS)
 	// Force was the limit; a Strong hand absorbs 60, so the first lost hand is a Strong one.
 	testing.expect_value(t, g.last_beating.beatings, 1)
@@ -213,7 +213,7 @@ no_hands_means_a_full_reset_with_a_scar :: proc(t: ^testing.T) {
 	g.pelts = 500
 	g.hunter_out = true
 	area := cur(&g)
-	area.beavers[1].grudge = area_limit(area) // beaver 1 is the ringleader
+	area.beavers[1].grudge = area_limit(area, g.current_area) // beaver 1 is the ringleader
 	other := &g.areas[0]
 	other.beavers[0].grudge = 25
 	step(&g, TICK_MS)
@@ -225,7 +225,7 @@ no_hands_means_a_full_reset_with_a_scar :: proc(t: ^testing.T) {
 	testing.expect_value(t, g.last_beating.scar_beaver, 1)
 	testing.expect_value(t, g.area_count, 2) // the world is kept
 	testing.expect_value(t, other.beavers[0].grudge, 25 - RESET_RELIEF) // calmer, not cleared
-	testing.expect(t, area_patience(area) < area_limit(area), "area is usable again")
+	testing.expect(t, area_patience(area) < area_limit(area, g.current_area), "area is usable again")
 }
 
 @(test)
@@ -266,7 +266,7 @@ a_scarred_forgiving_beaver_stops_adding_patience_next_run :: proc(t: ^testing.T)
 	g := new_game()
 	area := cur(&g)
 	area.beavers[0].temperament = .Forgiving
-	area.beavers[0].grudge = area_limit(area)
+	area.beavers[0].grudge = area_limit(area, g.current_area)
 	step(&g, TICK_MS) // no hands: reset, beaver 0 is scarred
 	testing.expect_value(t, area.beavers[0].scars, 1)
 	calm(&g)
@@ -361,4 +361,50 @@ a_scarred_beaver_gets_a_line_that_says_so :: proc(t: ^testing.T) {
 		area.trips += 1
 		testing.expect_value(t, pick_trip_line(&g).kind, Line_Kind.Scarred)
 	}
+}
+
+// --- Depth: deeper areas are touchier and pay more ---
+
+@(test)
+deeper_areas_are_touchier_with_a_floor :: proc(t: ^testing.T) {
+	a := Area{beaver_count = 4}
+	shallow := area_limit(&a, 0)
+	deeper := area_limit(&a, 5)
+	deepest := area_limit(&a, 1000)
+	testing.expect_value(t, shallow, 4 * PATIENCE_PER_BEAVER)
+	testing.expect(t, deeper < shallow, "touchier")
+	testing.expect_value(t, deepest, 4 * MIN_PATIENCE_PER_BEAVER)
+}
+
+@(test)
+deeper_areas_pay_more_and_fractions_carry :: proc(t: ^testing.T) {
+	g := new_game()
+	move_on(&g)
+	for _ in 0 ..< 4 { move_on(&g) } // depth 5: +50%
+	testing.expect_value(t, g.current_area, 5)
+	testing.expect_value(t, area_pay_percent(5), 150)
+	calm(&g)
+	start_hunt(&g)
+	step(&g, HUNTER_TRIP_MS) // 1.5 pelts: pays 1, carries 0.5
+	testing.expect_value(t, g.pelts, 1)
+	start_hunt(&g)
+	step(&g, HUNTER_TRIP_MS) // 1.5 + 0.5 carried: pays 2
+	testing.expect_value(t, g.pelts, 3)
+}
+
+@(test)
+losing_a_hand_does_not_discount_the_next :: proc(t: ^testing.T) {
+	g := new_game()
+	g.pelts = 1000
+	buy_hand(&g, .Quiet)
+	buy_hand(&g, .Quiet)
+	price := hand_cost(.Quiet, g.bought[.Quiet])
+	g.hands[.Quiet] = 0 // beaten out of them
+	testing.expect_value(t, hand_cost(.Quiet, g.bought[.Quiet]), price)
+	// A full reset starts a new run at the base price.
+	area := cur(&g)
+	area.beavers[0].grudge = area_limit(area, g.current_area)
+	step(&g, TICK_MS)
+	testing.expect_value(t, g.bought[.Quiet], 0)
+	testing.expect_value(t, hand_cost(.Quiet, g.bought[.Quiet]), 10)
 }

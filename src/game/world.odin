@@ -54,8 +54,15 @@ area_patience :: proc(a: ^Area) -> u64 {
 	return total
 }
 
-area_limit :: proc(a: ^Area) -> u64 {
-	return u64(a.beaver_count) * PATIENCE_PER_BEAVER
+// Deeper areas (higher index) are touchier: the limit per beaver falls with depth, down to a floor.
+area_limit :: proc(a: ^Area, depth: int) -> u64 {
+	per_beaver := max(i64(PATIENCE_PER_BEAVER) - i64(depth) * DEPTH_LIMIT_STEP, MIN_PATIENCE_PER_BEAVER)
+	return u64(a.beaver_count) * u64(per_beaver)
+}
+
+// Deeper areas pay more per trip, in percent of the base haul.
+area_pay_percent :: proc(depth: int) -> u64 {
+	return 100 + u64(depth) * DEPTH_PAY_PERCENT
 }
 
 // What one trip with base `drain` adds to this beaver's grudge, scars considered.

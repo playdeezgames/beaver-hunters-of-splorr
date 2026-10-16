@@ -37,7 +37,10 @@ BEST_FIRST :: [?]Hand_Kind{.Strong, .Quiet}
 MAX_AREAS :: 32 // slice bound on the "endless" world; past it, moving on cycles through them
 MIN_BEAVERS :: 3
 MAX_BEAVERS :: 5
-PATIENCE_PER_BEAVER :: 30 // an area's limit is this times its beavers
+PATIENCE_PER_BEAVER :: 60 // the first area's limit is this times its beavers
+DEPTH_LIMIT_STEP :: 3 // each area further from the start (by index) is this much touchier per beaver
+MIN_PATIENCE_PER_BEAVER :: 20 // the floor, however deep
+DEPTH_PAY_PERCENT :: 10 // each area further from the start pays this many percent more per trip
 COOL_INTERVAL_MS :: 10_000 // elsewhere, every beaver of an area we are not in forgets 1 point
 RESET_RELIEF :: 10 // a full reset takes this much grudge off every beaver everywhere
 SCARRED_GRUDGING_FACTOR :: 2 // a scarred grudging beaver adds this much more patience per trip
@@ -63,7 +66,7 @@ AREA_NAMES := [?]string {
 
 // Save format.
 SAVE_MAGIC :: 0x42485350 // "BHSP"
-SAVE_VERSION :: 1
+SAVE_VERSION :: 3
 
 // PLACEHOLDER trip text, played straight, so the screens can be built. The user writes the
 // real lines (the double entendre lives here). Voice: "yer" means "your" or "you're" only; "you" stays "you" (\"You set the traps\", \"Erase yer save?\"). Never write "your" or "you're".

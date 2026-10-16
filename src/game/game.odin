@@ -25,10 +25,12 @@ Game :: struct {
 	elapsed_ms:   u64,
 	tick_pending: u64, // time not yet run as a tick
 	cool_ms:      u64,
+	pay_carry:    u64, // hundredths of a pelt not yet paid out, from depth bonuses
 	pelts:        u64,
 	hunter_out:   bool,
 	hunter_ms:    u64, // time spent on the current trip
 	hands:        [Hand_Kind]u64, // hands owned
+	bought:       [Hand_Kind]u64, // hands bought this run; the price follows this, so losing a hand does not discount the next
 	hand_ms:      [Hand_Kind]u64, // progress into each kind's current cycle
 	areas:        [MAX_AREAS]Area,
 	area_count:   int,
@@ -78,19 +80,20 @@ start_hunt :: proc(g: ^Game) -> bool {
 }
 
 // Price of the next hand of a kind: steep curve, rounded up.
-hand_cost :: proc(kind: Hand_Kind, owned: u64) -> u64 {
+hand_cost :: proc(kind: Hand_Kind, bought: u64) -> u64 {
 	base := f64(HAND_DEFS[kind].base_cost)
-	return u64(math.ceil(base * math.pow(COST_GROWTH, f64(owned))))
+	return u64(math.ceil(base * math.pow(COST_GROWTH, f64(bought))))
 }
 
 // Buys one hand. False (and nothing changes) if you cannot afford it.
 buy_hand :: proc(g: ^Game, kind: Hand_Kind) -> bool {
-	cost := hand_cost(kind, g.hands[kind])
+	cost := hand_cost(kind, g.bought[kind])
 	if g.pelts < cost {
 		return false
 	}
 	g.pelts -= cost
 	g.hands[kind] += 1
+	g.bought[kind] += 1
 	return true
 }
 
@@ -116,9 +119,9 @@ tick :: proc(g: ^Game) {
 		if g.hunter_ms >= HUNTER_TRIP_MS {
 			g.hunter_out = false
 			g.hunter_ms = 0
+			paid := pay(g, HUNTER_HAUL)
 			g.last_hunter.trips += 1
-			g.last_hunter.pelts += HUNTER_HAUL
-			g.pelts += HUNTER_HAUL
+			g.last_hunter.pelts += paid
 			add_trips(g, HUNTER_DRAIN, 1)
 		}
 	}
@@ -132,10 +135,9 @@ tick :: proc(g: ^Game) {
 		g.hand_ms[kind] += TICK_MS
 		if g.hand_ms[kind] >= def.trip_ms {
 			g.hand_ms[kind] -= def.trip_ms
-			pelts := count * def.haul
+			paid := pay(g, count * def.haul)
 			g.last_hands[kind].trips += count
-			g.last_hands[kind].pelts += pelts
-			g.pelts += pelts
+			g.last_hands[kind].pelts += paid
 			add_trips(g, def.drain, count)
 		}
 	}
@@ -156,9 +158,20 @@ tick :: proc(g: ^Game) {
 	}
 
 	area := &g.areas[g.current_area]
-	if area_patience(area) >= area_limit(area) {
+	if area_patience(area) >= area_limit(area, g.current_area) {
 		beat_up(g)
 	}
+}
+
+// Pays `base` pelts, scaled by the current area's depth bonus. Fractions carry over, so the
+// total is exact however the trips are batched.
+@(private)
+pay :: proc(g: ^Game, base: u64) -> u64 {
+	hundredths := base * area_pay_percent(g.current_area) + g.pay_carry
+	whole := hundredths / 100
+	g.pay_carry = hundredths % 100
+	g.pelts += whole
+	return whole
 }
 
 // Each trip's drain goes to one beaver of the current area, round-robin.
@@ -219,6 +232,7 @@ beat_up :: proc(g: ^Game) {
 		// Full reset: pelts, hands and the trip in progress go; the world stays, a little calmer.
 		g.pelts = 0
 		g.hands = {}
+		g.bought = {} // a new run starts at the base prices
 		g.hand_ms = {}
 		g.hunter_out = false
 		g.hunter_ms = 0
