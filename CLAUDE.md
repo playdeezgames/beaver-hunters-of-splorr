@@ -52,7 +52,7 @@ Established layout from sibling games (follow when scaffolding): pure rules pack
 
 ## Rules specific to this project
 
-- **Voice:** "yer" in every player-facing string; never "your" / "you're". Grep before committing text.
+- **Voice:** "yer" means "your" or "you're" only, never "you" ("You set the traps", "Erase yer save?"). Never write "your" or "you're" in player-facing strings. Grep both before committing text.
 - Keep "of SPLORR!!" in the title; keep text suggestive, not explicit.
 - Credit line required on the itch page and a credits screen: *DINOBYTE bitmap font by mby, https://mby.itch.io/dinobyte, CC BY 4.0*, plus Urizen (vurmux). Page needs the AI-use disclosure.
 - Namespace any `localStorage` keys (all itch HTML5 games share one origin).

@@ -9,7 +9,7 @@ PROPOSED is decided.
 
 A metaphor: hunt beavers, collect pelts. Heavy double entendre, **played completely straight**
 (the game never acknowledges the second meaning). Idle/incremental. No win state, just a count.
-Voice is "yer" throughout. Ships on itch.io only. Title keeps "of SPLORR!!". Suggestive, not explicit.
+Voice: "yer" means "your" or "you're" only, never "you" ("You set the traps", "Erase yer save?"). Never write "your" or "you're" in player-facing text. Ships on itch.io only. Title keeps "of SPLORR!!". Suggestive, not explicit.
 
 ## 2. Mechanics (decided)
 
@@ -18,12 +18,12 @@ Voice is "yer" throughout. Ships on itch.io only. Title keeps "of SPLORR!!". Sug
 | Hunt | A **timed trip**. Hunter goes out, time passes, returns with pelts. Shown as a plain progress bar; scene stays still. |
 | Pelts | Currency. Main sink is **hired hands** who make trips on their own. |
 | Hands | Have **specialities** (e.g. quiet = drain less patience, strong = haul more). Steep cost curve, ~1.15x per hand of a kind (tune in play). |
-| Beavers | **Named individuals** with a **temperament**; they remember yer. |
-| Patience | **Hidden**, builds per area from trips/pelts taken. Recovers while yer are elsewhere. Hands drain it too (assumed; confirm). |
+| Beavers | **Named individuals** with a **temperament**; they remember you. |
+| Patience | **Hidden**, builds per area from trips/pelts taken. Recovers while you are elsewhere. Hands drain it too (assumed; confirm). |
 | Beating | When an area's beavers are fed up they gang up. **Hands take it first, best first.** With none left, a **full reset**. |
 | Reset | Pelts and hands go. **World is kept.** Every area's patience drops by a fixed amount (not cleared). Leaves a **scar** on the beaver(s) responsible. |
-| Scars | Per-beaver. Later runs, that beaver leaves yer alone or comes after yer first, depending on its temperament. |
-| Areas | **Endless, generated, remembered.** "Move on" picks/creates another area; yer pick one per trip. Rotating is the skill. |
+| Scars | Per-beaver. Later runs, that beaver leaves you alone or comes after you first, depending on its temperament. |
+| Areas | **Endless, generated, remembered.** "Move on" picks/creates another area; you pick one per trip. Rotating is the skill. |
 | Text | A deadpan line from a list at the end of each trip. The double entendre lives here. The user writes the jokes. |
 
 ## 3. Presentation (decided)
@@ -79,7 +79,7 @@ beyond scars; per-beaver trip-text variation; Steam/Jest anything.
   instructions beyond on-screen labels.
 - After a reset, a scar is visibly or textually evident on a later trip (so it is not invisible).
 - Refreshing the page loses nothing; one itch.io HTML5 build is live and the page text is right.
-- `grep -E "your|you're"` over player-facing strings returns nothing.
+- `grep -E "your|you.re"` over player-facing strings returns nothing, and no "yer" stands where "you" belongs.
 
 ## 5. Milestones (PROPOSED)
 
@@ -101,9 +101,7 @@ beyond scars; per-beaver trip-text variation; Steam/Jest anything.
 
 ## 7. Still open
 
-- Hand kind names and the trip-text lines (the user's jokes).
-- Itch page slug and content tags (the user creates the page).
-- Tuning numbers (trip length, base prices, patience per trip, reset reduction): settle with a prototype.
+See section 10 for what was settled. Remaining: the user's edits to the trip text, the itch tags and content note, and the tuning pass.
 
 ## 8. How M2 resolved the details (PROPOSED, all tunable in `src/game/data.odin`)
 
@@ -113,7 +111,7 @@ beyond scars; per-beaver trip-text variation; Steam/Jest anything.
 - **Beating.** Force is the area's total patience. Hands absorb it, **Strong before Quiet** (20 per Quiet hand, 60 per Strong), at least one hand per beating. If hands run out the run resets.
 - **After a beating** every beaver's grudge in that area halves. A **full reset** also clears pelts, hands and the trip, and takes 10 grudge off every beaver everywhere. The world is kept.
 - **Scars** are only earned on a full reset, by the beaver with the biggest grudge (lowest index on a tie). Scarred *Forgiving* beavers add no patience; scarred *Grudging* ones add double; *Indifferent* ones are unchanged.
-- **Cooling.** Beavers of areas yer are not in lose 1 grudge every 10 s.
+- **Cooling.** Beavers of areas you are not in lose 1 grudge every 10 s.
 - **World.** Seeded and deterministic per (seed, index); 3 to 5 beavers per area with distinct names; at most 32 areas, after which "move on" cycles through them (the slice's answer to "what bounds the world").
 - **Placeholder lists.** 30 beaver names and 12 area names in `data.odin` are placeholders; the user writes the real ones.
 - **Known feel risk.** One hand left alone for an hour will be beaten and reset, because drain outpaces cooling in the current area. That is the pressure working, but tune it once there is a screen.
@@ -127,3 +125,13 @@ beyond scars; per-beaver trip-text variation; Steam/Jest anything.
 - **Text.** Placeholder lines in `data.odin`: plain lines, a beaver name plus a fragment, and fragments for scarred beavers. Beating and reset messages are placeholders in `src/web/web.odin`. The user writes the real ones.
 - **Scars show** as `*` marks beside a beaver's name and as trip lines for scarred beavers. Temperament is not shown.
 - **Not done.** Sound, touch layout checks on a phone, the itch page assets (M4).
+
+## 10. Decisions after M3 (October 16, 2026)
+
+- **Offline beating risk kept**; retune the numbers after playing.
+- **Temperament stays hidden**; the player learns it from what a scar does.
+- **Hand names:** *Soft Touch* (the quiet kind) and *Rough Hand* (the strong kind). Stored as `name` in `HAND_DEFS`.
+- **Trip text:** the user edits Claude's drafts in `docs/TRIP_TEXT_DRAFT.md`; placeholders stay in the game until then.
+- **Itch page exists:** https://thegrumpygamedev.itch.io/beaver-hunters-of-splorr (slug `beaver-hunters-of-splorr`, matching `shippit.sh`). Page settings, tags and content notes are the user's.
+- **Page copy:** Claude drafts `ITCH_DESCRIPTION.md` (done, draft); the user edits it, pastes it in, and sets tags and the content note.
+- **Tuning:** a bot-play simulation for sanity first, then the user plays and reports feel; numbers live in `src/game/data.odin`.

@@ -17,6 +17,7 @@ Hand_Kind :: enum {
 }
 
 Hand_Def :: struct {
+	name:      string, // shown to the player
 	base_cost: u64, // pelts for the first hand
 	haul:      u64, // pelts one hand brings back per trip
 	trip_ms:   u64,
@@ -25,8 +26,8 @@ Hand_Def :: struct {
 }
 
 HAND_DEFS := [Hand_Kind]Hand_Def {
-	.Quiet  = {base_cost = 10, haul = 1, trip_ms = 8_000, drain = 1, absorb = 20},
-	.Strong = {base_cost = 50, haul = 6, trip_ms = 12_000, drain = 5, absorb = 60},
+	.Quiet  = {name = "Soft Touch", base_cost = 10, haul = 1, trip_ms = 8_000, drain = 1, absorb = 20},
+	.Strong = {name = "Rough Hand", base_cost = 50, haul = 6, trip_ms = 12_000, drain = 5, absorb = 60},
 }
 
 // The beavers go after the most valuable hands first.
@@ -65,18 +66,18 @@ SAVE_MAGIC :: 0x42485350 // "BHSP"
 SAVE_VERSION :: 1
 
 // PLACEHOLDER trip text, played straight, so the screens can be built. The user writes the
-// real lines (the double entendre lives here). Voice is "yer"; never "your" or "you're".
+// real lines (the double entendre lives here). Voice: "yer" means "your" or "you're" only; "you" stays "you" (\"You set the traps\", \"Erase yer save?\"). Never write "your" or "you're".
 // A trip's line is a plain line, or a beaver's name followed by a fragment.
 TRIP_LINES := [?]string {
-	"Yer set the traps along the bank.",
+	"You set the traps along the bank.",
 	"A quiet morning on the water.",
 	"The pelts are good this season.",
-	"Yer check the lines before dark.",
+	"You check the lines before dark.",
 	"Nothing stirs but the reeds.",
-	"Yer follow the creek upstream.",
+	"You follow the creek upstream.",
 	"A fair haul.",
 	"The lodge stands quiet.",
-	"Yer lay another line.",
+	"You lay another line.",
 	"Cold work, but honest.",
 }
 
@@ -88,7 +89,7 @@ NAMED_FRAGMENTS := [?]string {
 }
 
 SCARRED_FRAGMENTS := [?]string {
-	"remembers yer.",
+	"remembers you.",
 	"wears the mark from last time.",
 	"turns away.",
 	"has a long memory.",

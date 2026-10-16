@@ -222,27 +222,31 @@ draw_play :: proc() {
 
 	// Panel.
 	px: i32 = PANEL_X
+	bar_x := px + 168
 	draw_text(fmt.bprintf(buf[:], "Pelts %d", g.pelts), px, 12)
-	draw_text("Hunter", px, 44, DIM)
-	draw_bar(px + 96, 46, 160, g.hunter_ms if g.hunter_out else 0, game.HUNTER_TRIP_MS, ACCENT)
-	for kind, i in game.Hand_Kind {
-		def := game.HAND_DEFS[kind]
-		draw_text("Quiet" if kind == .Quiet else "Strong", px, 70 + i32(i) * 24, DIM)
-		count := g.hands[kind]
-		draw_bar(px + 96, 72 + i32(i) * 24, 160, g.hand_ms[kind] if count > 0 else 0, def.trip_ms, ACCENT)
-	}
-
+	draw_text("Hunter", px, 40, DIM)
+	draw_bar(bar_x, 42, 96, g.hunter_ms if g.hunter_out else 0, game.HUNTER_TRIP_MS, ACCENT)
 	hunt_label := "[H] Hunting..." if g.hunter_out else "[H] Hunt"
-	draw_button(hunt_label, px, 132, 264, .Hunt, !g.hunter_out)
-	qc := game.hand_cost(.Quiet, g.hands[.Quiet])
-	sc := game.hand_cost(.Strong, g.hands[.Strong])
-	draw_button(fmt.bprintf(buf[:], "[Q] Quiet x%d  %d", g.hands[.Quiet], qc), px, 164, 264, .Hire_Quiet, g.pelts >= qc)
-	buf2: [64]u8
-	draw_button(fmt.bprintf(buf2[:], "[S] Strong x%d  %d", g.hands[.Strong], sc), px, 196, 264, .Hire_Strong, g.pelts >= sc)
-	draw_button("[M] Move on", px, 228, 264, .Move_On, true)
-	draw_button("[<]", px, 260, 126, .Prev_Area, g.current_area > 0)
-	draw_button("[>]", px + 138, 260, 126, .Next_Area, g.current_area + 1 < g.area_count)
-	draw_button("[Esc] Title", px, 292, 264, .Title, true)
+	draw_button(hunt_label, px, 68, 264, .Hunt, !g.hunter_out)
+
+	y: i32 = 108
+	for kind in game.Hand_Kind {
+		def := game.HAND_DEFS[kind]
+		count := g.hands[kind]
+		cost := game.hand_cost(kind, count)
+		buf2: [64]u8
+		draw_text(fmt.bprintf(buf2[:], "%s x%d", def.name, count), px, y, DIM)
+		draw_bar(bar_x, y + 2, 96, g.hand_ms[kind] if count > 0 else 0, def.trip_ms, ACCENT)
+		key := "Q" if kind == .Quiet else "S"
+		action := Action.Hire_Quiet if kind == .Quiet else Action.Hire_Strong
+		buf3: [64]u8
+		draw_button(fmt.bprintf(buf3[:], "[%s] Hire  %d", key, cost), px, y + 24, 264, action, g.pelts >= cost)
+		y += 64
+	}
+	draw_button("[M] Move on", px, y + 4, 264, .Move_On, true)
+	draw_button("[<]", px, y + 36, 126, .Prev_Area, g.current_area > 0)
+	draw_button("[>]", px + 138, y + 36, 126, .Next_Area, g.current_area + 1 < g.area_count)
+	draw_button("[Esc] Title", px, y + 68, 264, .Title, true)
 
 	// Message line.
 	draw_wrapped(message, SCENE_X, 316, 52)

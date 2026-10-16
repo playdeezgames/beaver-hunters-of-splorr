@@ -93,7 +93,7 @@ load_save :: proc() {
 	counted := game.catch_up(&state, away)
 	after_step()
 	if counted >= AWAY_NOTICE_MS && state.last_beating.beatings == 0 {
-		set_message(fmt.bprintf(message_buf[:], "Yer were away %d minutes.", counted / 60_000))
+		set_message(fmt.bprintf(message_buf[:], "You were away %d minutes.", counted / 60_000))
 	}
 }
 
@@ -135,7 +135,7 @@ step :: proc(dt: f64, c: runtime.Context) -> bool {
 		counted := game.catch_up(&state, delta)
 		after_step()
 		if counted >= AWAY_NOTICE_MS && state.last_beating.beatings == 0 {
-			set_message(fmt.bprintf(message_buf[:], "Yer were away %d minutes.", counted / 60_000))
+			set_message(fmt.bprintf(message_buf[:], "You were away %d minutes.", counted / 60_000))
 		}
 	} else {
 		game.step(&state, delta)

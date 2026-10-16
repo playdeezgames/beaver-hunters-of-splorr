@@ -47,7 +47,7 @@ new_game :: proc(seed: u64 = 1) -> Game {
 }
 
 // Moves to a new area, or (once MAX_AREAS exist) the next remembered one. The area left stays
-// as it was and cools while yer are away.
+// as it was and cools while you are away.
 move_on :: proc(g: ^Game) {
 	if g.area_count < MAX_AREAS {
 		g.areas[g.area_count] = generate_area(g.seed, g.area_count)
@@ -83,7 +83,7 @@ hand_cost :: proc(kind: Hand_Kind, owned: u64) -> u64 {
 	return u64(math.ceil(base * math.pow(COST_GROWTH, f64(owned))))
 }
 
-// Buys one hand. False (and nothing changes) if yer cannot afford it.
+// Buys one hand. False (and nothing changes) if you cannot afford it.
 buy_hand :: proc(g: ^Game, kind: Hand_Kind) -> bool {
 	cost := hand_cost(kind, g.hands[kind])
 	if g.pelts < cost {
@@ -140,7 +140,7 @@ tick :: proc(g: ^Game) {
 		}
 	}
 
-	// Areas yer are not in cool off; that is what makes moving on work.
+	// Areas you are not in cool off; that is what makes moving on work.
 	g.cool_ms += TICK_MS
 	if g.cool_ms >= COOL_INTERVAL_MS {
 		g.cool_ms -= COOL_INTERVAL_MS
@@ -232,7 +232,7 @@ beat_up :: proc(g: ^Game) {
 }
 
 // Applies time spent away, capped at OFFLINE_CAP_MS. Returns the milliseconds that counted.
-// A beating can arrive while yer are away.
+// A beating can arrive while you are away.
 catch_up :: proc(g: ^Game, away_ms: u64) -> u64 {
 	counted := min(away_ms, OFFLINE_CAP_MS)
 	step(g, counted)
