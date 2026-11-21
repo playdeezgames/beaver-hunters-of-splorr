@@ -131,7 +131,7 @@ See section 10 for what was settled. Remaining: the user's edits to the trip tex
 - **Offline beating risk kept**; retune the numbers after playing.
 - **Temperament stays hidden**; the player learns it from what a scar does.
 - **Hand names:** *Soft Touch* (the quiet kind) and *Rough Hand* (the strong kind). Stored as `name` in `HAND_DEFS`.
-- **Trip text:** the user edits Claude's drafts in `docs/TRIP_TEXT_DRAFT.md`; placeholders stay in the game until then.
+- **Trip text:** the user edits Claude's drafts in `design/TRIP_TEXT_DRAFT.md`; placeholders stay in the game until then.
 - **Itch page exists:** https://thegrumpygamedev.itch.io/beaver-hunters-of-splorr (slug `beaver-hunters-of-splorr`, matching `shippit.sh`). Page settings, tags and content notes are the user's.
 - **Page copy:** Claude drafts `ITCH_DESCRIPTION.md` (done, draft); the user edits it, pastes it in, and sets tags and the content note.
 - **Tuning:** a bot-play simulation for sanity first, then the user plays and reports feel; numbers live in `src/game/data.odin`.
@@ -141,7 +141,7 @@ See section 10 for what was settled. Remaining: the user's edits to the trip tex
 - **Depth.** An area's index is its depth. Each step deeper lowers the limit per beaver by 3 (floor 20) and raises pay by 10%. Pay fractions carry over exactly.
 - **Limit** per beaver raised from 30 to 60.
 - **Hand prices follow hands bought this run**, not hands owned. A beating costs hands without discounting the rebuy; a full reset starts the next run at base prices.
-- Save version 3. Findings and the simulation are in `docs/BALANCE.md`.
+- Save version 3. Findings and the simulation are in `design/BALANCE.md`.
 
 ## 12. Hunter upgrade (October 16, 2026; PROPOSED numbers in `data.odin`)
 

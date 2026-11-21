@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## State of the repo
 
-Milestones **M0 (scaffold), M1 (rules core) and M2 (world: patience, beatings, resets, scars) and M3 (screens, text, save/load) are done**; see `docs/DESIGN.md` section 5 for the rest. The game is a stub that proves the pipeline. Do not invent answers to the design's open questions; ask the user.
+Milestones **M0 (scaffold), M1 (rules core) and M2 (world: patience, beatings, resets, scars) and M3 (screens, text, save/load) are done**; see `design/DESIGN.md` section 5 for the rest. The game is a stub that proves the pipeline. Do not invent answers to the design's open questions; ask the user.
 
 ## Commands
 
@@ -15,7 +15,7 @@ Milestones **M0 (scaffold), M1 (rules core) and M2 (world: patience, beatings, r
 ./shippit.sh # test, build, zip; uploads to itch.io only with --push (ask the user first)
 ```
 
-Balance simulation (bot play over many seeds, see `docs/BALANCE.md`): `/home/yermom/ODIN/odin run tools/sim -collection:tggd=src -o:speed`
+Balance simulation (bot play over many seeds, see `design/BALANCE.md`): `/home/yermom/ODIN/odin run tools/sim -collection:tggd=src -o:speed`
 
 Single test: `/home/yermom/ODIN/odin test src/game -collection:tggd=src -define:ODIN_TEST_THREADS=1 -define:ODIN_TEST_NAMES=game.step_accumulates_time`
 
@@ -29,13 +29,13 @@ Single test: `/home/yermom/ODIN/odin test src/game -collection:tggd=src -define:
 
 ## Source of truth
 
-The design lives in **this repo**: `docs/DESIGN.md` (decisions, the proposed vertical slice, milestones, open questions). Keep it current; the vault note only summarises and points here.
+The design lives in **this repo**: `design/DESIGN.md` (decisions, the proposed vertical slice, milestones, open questions). Keep it current; the vault note only summarises and points here.
 
 ## The SPLORR!! knowledge base
 
 Cross-game context and tech recipes live in the Obsidian vault at `/home/yermom/git/bok-of-splorr/splorr` (added to sessions as a working directory). Read these before doing anything:
 
-- `Games/Beaver Hunters of SPLORR!!.md` – dated decision history and summary; points to `docs/DESIGN.md`.
+- `Games/Beaver Hunters of SPLORR!!.md` – dated decision history and summary; points to `design/DESIGN.md`.
 - `Home.md` – index and **standing rules for sessions** (below).
 - `Tech/Odin wasm recipe.md` – build/frame-loop/canvas recipe; see the "Turn Left at the Cow" and "Murder Hobo" variants.
 - `Tech/Shipping to itch.io.md`, `Gotchas.md`, `Concepts/Metaphor design.md`.

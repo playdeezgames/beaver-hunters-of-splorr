@@ -1,7 +1,7 @@
 package game
 
 // Every tuning number lives here so a prototype can retune the game from one place.
-// All of these are PROPOSED (docs/DESIGN.md) and none is final.
+// All of these are PROPOSED (design/DESIGN.md) and none is final.
 
 TICK_MS :: 250 // the simulation runs in ticks on an absolute clock, so step is exact for any dt
 OFFLINE_CAP_MS :: 60 * 60 * 1000 // away time that counts when the page returns
