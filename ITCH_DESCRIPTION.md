@@ -6,6 +6,8 @@ note are the developer's call. In itch markdown, leave a blank line after a bold
 
 Hunt beavers. Collect pelts. Hire hands. Try not to get beaten up.
 
+**Latest version:** https://playdeezgames.github.io/beaver-hunters-of-splorr/
+
 **BEAVER HUNTERS OF SPLORR!!**
 
 Hunt beavers in order to collect beaver pelts. That is the game.
