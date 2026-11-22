@@ -456,3 +456,80 @@ a_full_reset_clears_the_hunter_level :: proc(t: ^testing.T) {
 	step(&g, TICK_MS)
 	testing.expect_value(t, g.hunter_level, 0)
 }
+
+// Trip text guard (added November 22, 2026, ahead of the real lines): every line the game can show must
+// fit the message area (two wrapped rows of 52 cells, the same wrap as draw_wrapped in src/web/screens.odin),
+// be plain ASCII (the DINOBYTE sheet is single-byte; curly quotes or dashes would draw as junk), and never
+// say "your" or "you're" (the voice is "yer").
+@(private = "file")
+fits_two_rows :: proc(s: string, width: int = 52) -> bool {
+	rest := s
+	for _ in 0 ..< 2 {
+		if len(rest) == 0 {
+			return true
+		}
+		n := len(rest)
+		if n > width {
+			n = width
+			for n > 0 && rest[n] != ' ' {
+				n -= 1
+			}
+			if n == 0 {
+				n = width
+			}
+		}
+		rest = rest[n:]
+		for len(rest) > 0 && rest[0] == ' ' {
+			rest = rest[1:]
+		}
+	}
+	return len(rest) == 0
+}
+
+@(private = "file")
+text_ok :: proc(t: ^testing.T, s: string) {
+	testing.expectf(t, fits_two_rows(s), "too long for two rows of 52: %q", s)
+	lower: [256]u8
+	n := min(len(s), len(lower))
+	for i in 0 ..< n {
+		c := s[i]
+		testing.expectf(t, c >= 0x20 && c < 0x7f, "not plain ASCII (byte %d): %q", i, s)
+		lower[i] = c + 32 if c >= 'A' && c <= 'Z' else c
+	}
+	l := string(lower[:n])
+	for bad in ([]string{"your", "you're", "youre"}) {
+		for i in 0 ..= len(l) - len(bad) {
+			if len(l) >= len(bad) && l[i:i + len(bad)] == bad {
+				testing.expectf(t, false, "says %q (the voice is \"yer\"): %q", bad, s)
+			}
+		}
+	}
+}
+
+@(test)
+trip_text_fits_and_keeps_the_voice :: proc(t: ^testing.T) {
+	longest := ""
+	for name in BEAVER_NAMES {
+		if len(name) > len(longest) {
+			longest = name
+		}
+	}
+	buf: [256]u8
+	for s in TRIP_LINES {
+		text_ok(t, s)
+	}
+	for f in NAMED_FRAGMENTS {
+		text_ok(t, f)
+		n := copy(buf[:], longest)
+		buf[n] = ' '
+		n += 1 + copy(buf[n + 1:], f)
+		text_ok(t, string(buf[:n]))
+	}
+	for f in SCARRED_FRAGMENTS {
+		text_ok(t, f)
+		n := copy(buf[:], longest)
+		buf[n] = ' '
+		n += 1 + copy(buf[n + 1:], f)
+		text_ok(t, string(buf[:n]))
+	}
+}

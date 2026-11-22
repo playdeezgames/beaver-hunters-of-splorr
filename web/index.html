@@ -75,13 +75,16 @@ document.getElementById("feedback-link").addEventListener("click", (e) => { e.pr
     return c;
   }
 
+  // Screenshot hook: ?speed=N runs the game clock N times fast (tools/make_screenshots.sh). Default 1.
+  const SPEED = Math.max(1, Number(new URLSearchParams(location.search).get("speed")) || 1);
+  const T0 = Date.now();
   const memory = new odin.WasmMemoryInterface();
   const decoder = new TextDecoder();
   const key = (ptr, len) => decoder.decode(new Uint8Array(memory.memory.buffer, ptr, len));
 
   const imports = {
     canvas: {
-      now_ms: () => Date.now(),
+      now_ms: () => T0 + (Date.now() - T0) * SPEED,
       storage_get: (kp, kl, bp, cap) => {
         try {
           const v = localStorage.getItem(key(kp, kl));
@@ -125,6 +128,18 @@ document.getElementById("feedback-link").addEventListener("click", (e) => { e.pr
 
   window.addEventListener("load", () => {
     odin.runWasm("game.wasm", null, imports, memory);
+    // Screenshot hook (tools/make_screenshots.sh): ?keys=Code@ms,Code@ms presses each key at that time
+    // after load, e.g. ?keys=Enter@500,KeyH@1000. Without the parameter it does nothing.
+    const plan = new URLSearchParams(location.search).get("keys");
+    // Times count from when the game is running (exports present), not from page load.
+    const startPlan = () => {
+      if (!memory.exports) { setTimeout(startPlan, 50); return; }
+      for (const step of plan.split(",")) {
+        const [code, at] = step.split("@");
+        setTimeout(() => window.dispatchEvent(new KeyboardEvent("keydown", { code, key: code })), Number(at) || 0);
+      }
+    };
+    if (plan) startPlan();
   });
 })();
 </script>

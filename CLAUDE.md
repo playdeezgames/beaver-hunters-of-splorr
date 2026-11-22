@@ -12,8 +12,13 @@ Milestones **M0 (scaffold), M1 (rules core) and M2 (world: patience, beatings, r
 ./test.sh    # native odin test of src/game, plus wasm type-check of both packages
 ./build.sh   # builds build/web (game.wasm, odin.js, index.html, assets)
 ./serve.sh   # http://localhost:8000 serving build/web
-./shippit.sh # test, build, zip; uploads to itch.io only with --push (ask the user first)
+./shippit.sh # wrapper for tools/ship.sh: test, build, zip; uploads to itch.io only with --push (ask the user first)
+tools/pages.sh                  # rebuilds docs/ for GitHub Pages (never commits or pushes)
+node tools/make_screenshots.mjs # assets/screenshots/*.png from the real build (run ./build.sh first)
+tools/apply_trip_text.py        # copies the numbered lines of design/TRIP_TEXT_DRAFT.md into src/game/data.odin
 ```
+
+Trip text: the lines are the user's (do not invent them). The test `trip_text_fits_and_keeps_the_voice` checks every line fits the two-row message area, is plain ASCII and never says "your" or "you're". The page's `?speed=N` and `?keys=Code@ms` parameters exist only for the screenshot script.
 
 Balance simulation (bot play over many seeds, see `design/BALANCE.md`): `/home/yermom/ODIN/odin run tools/sim -collection:tggd=src -o:speed`
 
