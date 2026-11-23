@@ -6,14 +6,29 @@
 <title>Beaver Hunters of SPLORR!!</title>
 <style>
   html, body { margin: 0; height: 100%; background: #101418; }
-  body { display: flex; align-items: center; justify-content: center; }
-  canvas { image-rendering: pixelated; width: min(100vw, calc(100vh * 640 / 360)); height: auto; }
+  body { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  canvas { image-rendering: pixelated; width: min(100vw, calc((100vh - 3.5em) * 640 / 360)); height: auto; }
+  footer { color: #8a949e; font: 12px/1.5 sans-serif; text-align: center; padding: 0.4em 1em; }
+  footer a { color: #c8d0d8; }
 </style>
 </head>
 <body>
 <canvas id="screen" width="640" height="360"></canvas>
+<footer>
+  Beaver Hunters of SPLORR!! by TheGrumpyGameDev. Code made by an AI agent (Claude Code) at the author's direction.
+  Tiles: Urizen by vurmux (CC0). Font: DINOBYTE by mby (CC BY 4.0). Feedback by LootLocker.<br>
+  <a href="#" id="feedback-link">Send feedback</a> &middot; <a href="https://thegrumpygamedev.itch.io/">itch.io</a> &middot; <a href="https://playdeezgames.github.io/oeuvre-of-splorr/">more games</a>
+</footer>
 <script type="text/javascript" src="odin.js"></script>
+<script type="text/javascript" src="lootlocker.js"></script>
 <script type="text/javascript">
+// Feedback through the shared SPLORR!! LootLocker kit. The LootLocker game is not set up yet (the user's
+// console setup: Guest Login, CORS Allowlist, a Game feedback category); until domain and key are filled
+// in, the form opens but cannot send.
+const ll = LootLocker({ domain: "", key: "", version: "0.0.1", idKey: "beaver-hunters-ll-player" });
+const feedback = ll.feedbackDialog({ game: "Beaver Hunters of SPLORR!!" });
+document.getElementById("feedback-link").addEventListener("click", (e) => { e.preventDefault(); feedback.open(); });
+
 (function () {
   const canvas = document.getElementById("screen");
   const g = canvas.getContext("2d");
@@ -60,13 +75,16 @@
     return c;
   }
 
+  // Screenshot hook: ?speed=N runs the game clock N times fast (tools/make_screenshots.sh). Default 1.
+  const SPEED = Math.max(1, Number(new URLSearchParams(location.search).get("speed")) || 1);
+  const T0 = Date.now();
   const memory = new odin.WasmMemoryInterface();
   const decoder = new TextDecoder();
   const key = (ptr, len) => decoder.decode(new Uint8Array(memory.memory.buffer, ptr, len));
 
   const imports = {
     canvas: {
-      now_ms: () => Date.now(),
+      now_ms: () => T0 + (Date.now() - T0) * SPEED,
       storage_get: (kp, kl, bp, cap) => {
         try {
           const v = localStorage.getItem(key(kp, kl));
@@ -110,6 +128,18 @@
 
   window.addEventListener("load", () => {
     odin.runWasm("game.wasm", null, imports, memory);
+    // Screenshot hook (tools/make_screenshots.sh): ?keys=Code@ms,Code@ms presses each key at that time
+    // after load, e.g. ?keys=Enter@500,KeyH@1000. Without the parameter it does nothing.
+    const plan = new URLSearchParams(location.search).get("keys");
+    // Times count from when the game is running (exports present), not from page load.
+    const startPlan = () => {
+      if (!memory.exports) { setTimeout(startPlan, 50); return; }
+      for (const step of plan.split(",")) {
+        const [code, at] = step.split("@");
+        setTimeout(() => window.dispatchEvent(new KeyboardEvent("keydown", { code, key: code })), Number(at) || 0);
+      }
+    };
+    if (plan) startPlan();
   });
 })();
 </script>
