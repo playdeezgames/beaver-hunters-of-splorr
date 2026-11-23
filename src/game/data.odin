@@ -79,28 +79,35 @@ SAVE_VERSION :: 4
 // real lines (the double entendre lives here). Voice: "yer" means "your" or "you're" only; "you" stays "you" (\"You set the traps\", \"Erase yer save?\"). Never write "your" or "you're".
 // A trip's line is a plain line, or a beaver's name followed by a fragment.
 TRIP_LINES := [?]string {
-	"You set the traps along the bank.",
-	"A quiet morning on the water.",
-	"The pelts are good this season.",
-	"You check the lines before dark.",
-	"Nothing stirs but the reeds.",
-	"You follow the creek upstream.",
-	"A fair haul.",
-	"The lodge stands quiet.",
-	"You lay another line.",
-	"Cold work, but honest.",
+	"You check the traps. Something has been at the bait.",
+	"You spend a long morning looking for a good dam.",
+	"Nothing beats a fresh pelt on a cold day.",
+	"You work the bank until it is wet through.",
+	"You get a firm grip and pull.",
+	"A good pelt is soft and thick and worth the wait.",
+	"You never enter the lodge uninvited. Mostly.",
+	"You open the lodge up and find it well furnished.",
+	"It was a bigger one than you expected.",
+	"You hold it to the light and admire the fur.",
+	"You go down to the water to see what is out there.",
+	"Slow work. You like to take yer time.",
 }
 
 NAMED_FRAGMENTS := [?]string {
-	"watches from the reeds.",
-	"slaps the water twice.",
-	"keeps count of yer visits.",
-	"does not look up.",
+	"has been working on a very large dam.",
+	"slaps the water twice, then goes quiet.",
+	"keeps a tidy lodge and a longer list.",
+	"says it was not expecting company.",
+	"looks at yer traps, then at you.",
+	"will not say what it was doing in there.",
+	"is busy with its dam and asks to be left alone.",
 }
 
 SCARRED_FRAGMENTS := [?]string {
 	"remembers you.",
-	"wears the mark from last time.",
-	"turns away.",
-	"has a long memory.",
+	"still has the mark from last time.",
+	"keeps an eye on yer hands.",
+	"will not go down without a fight this time.",
+	"has made up its mind about you.",
+	"does not come out of the lodge.",
 }
